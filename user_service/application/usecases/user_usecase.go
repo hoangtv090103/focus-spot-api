@@ -6,6 +6,8 @@ import (
 	"focusspot/userservice/application/dto"
 	"focusspot/userservice/domain/entity"
 	"focusspot/userservice/domain/interfaces"
+	"focusspot/userservice/utils/hash"
+	"focusspot/userservice/utils/token"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,7 +18,7 @@ type IUserUseCase interface {
 	Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error)
 	GetUserByID(ctx context.Context, id string) (*dto.UserResponse, error)
 	UpdateUser(ctx context.Context, id string, req dto.UpdateUserRequest) (*dto.UserResponse, error)
-	UpdatePreferences(ctx context.Context, id string, req dto.UserPreferencesRequest) (*dto.UserPreferencesResponse, error)
+	UpdatePreferences(ctx context.Context, id string, req dto.UserPreferencesRequest) (*dto.UserResponse, error)
 }
 
 type userUseCase struct {
@@ -25,9 +27,9 @@ type userUseCase struct {
 }
 
 func NewUserUseCase(userRepo interfaces.IUserRepository, tokenMaker token.Maker) IUserUseCase {
-	return userUseCase{
+	return &userUseCase{
 		userRepo:   userRepo,
-		tokenMaker: token.Maker,
+		tokenMaker: tokenMaker,
 	}
 }
 
@@ -158,7 +160,7 @@ func (uc *userUseCase) UpdateUser(ctx context.Context, id string, req dto.Update
 	if err != nil {
 		return nil, err
 	}
-	
+
 	response := dto.ToUserResponse(user)
 	return &response, nil
 }
@@ -175,7 +177,7 @@ func (uc *userUseCase) UpdatePreferences(ctx context.Context, id string, req dto
 	}
 
 	preferences := entity.UserPreferences{
-		ThemeMode:           req.ThemeMode,
+		ThemeMode:            req.ThemeMode,
 		FocusSessionDuration: req.FocusSessionDuration,
 		PreferredLocations:   req.PreferredLocations,
 		NotificationsEnabled: req.NotificationsEnabled,
