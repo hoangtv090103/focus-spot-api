@@ -14,6 +14,6 @@ type IUserRepository interface {
 	GetByUsername(ctx context.Context, username string) (*entity.User, error)
 	Update(ctx context.Context, user *entity.User) error
 	Delete(ctx context.Context, id primitive.ObjectID) error
-	UpdateLastLogin(ctx context.Context, id primitive.ObjectID)
+	UpdateLastLogin(ctx context.Context, id primitive.ObjectID) error
 	UpdatePreferences(ctx context.Context, id primitive.ObjectID, preferences entity.UserPreferences) error
 }
