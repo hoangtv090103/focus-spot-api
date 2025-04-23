@@ -16,7 +16,7 @@ type User struct {
 	UpdatedAt      time.Time          `json:"updatedAt" bson:"updatedAt"`
 	LastLogin      *time.Time         `json:"lastLogin,omitempty" bson:"lastLogin,omitempty"`
 	Preferences    UserPreferences    `json:"preferences" bson:"preferences"`
-	DeletedAI      *time.Time         `json:"deletedAt,omitempty" bson:"deletedAt,omitempty"`
+	DeletedAt      *time.Time         `json:"deletedAt,omitempty" bson:"deletedAt,omitempty"`
 	Active         bool               `json:"active" bson:"active"`
 }
 
