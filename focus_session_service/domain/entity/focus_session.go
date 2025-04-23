@@ -27,7 +27,7 @@ type FocusSession struct {
 	Energy          *int                `json:"energy,omitempty" bson:"energy,omitempty"` // Energy level (1-10)
 	Mood            *int                `json:"mood,omitempty" bson:"mood,omitempty"`     // Mood
 	CreatedAt       time.Time           `json:"createdAt" bson:"createdAt"`
-	UpdateAt        time.Time           `json:"updatedAt" bson:"updatedAt"`
+	UpdatedAt       time.Time           `json:"updatedAt" bson:"updatedAt"`
 }
 
 type SessionStatus string
@@ -47,8 +47,8 @@ type LocationDetails struct {
 	Type      string  `json:"type,omitempty" bson:"type,omitempty"` // coffee shop, library, etc.
 }
 
-// ProductivityScore calculates the productivity score for a session
-func (s *FocusSession) ProductivityScore() float64 {
+// GetCalculateProductivityScore calculates the productivity score for a session
+func (s *FocusSession) CalculateProductivityScore() float64 {
 	if s.Status != StatusCompleted || s.ActualDuration == nil || s.Rating == nil {
 		return 0.0
 	}
