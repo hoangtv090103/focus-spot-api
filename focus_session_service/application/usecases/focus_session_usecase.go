@@ -134,11 +134,11 @@ func (uc *focusSessionUseCase) GetUserSessions(ctx context.Context, userID strin
 
 	// Check if date range is provided in the request
 	if req.StartDate != "" && req.EndDate != "" {
-		startDate, err := time.Parse(time.RFC3339, req.StartDate)
+		startDate, err := time.Parse("2006-01-02", req.StartDate)
 		if err != nil {
 			return nil, ErrInvalidDateRange
 		}
-		endDate, err := time.Parse(time.RFC3339, req.EndDate)
+		endDate, err := time.Parse("2006-01-02", req.EndDate)
 		if err != nil {
 			return nil, ErrInvalidDateRange
 		}
@@ -485,12 +485,12 @@ func (uc *focusSessionUseCase) GetProductivityStats(
 		endDate = time.Now()
 		startDate = endDate.AddDate(0, 0, -30)
 	} else {
-		startDate, err = time.Parse(time.RFC3339, req.StartDate)
+		startDate, err = time.Parse("2006-01-02", req.StartDate)
 		if err != nil {
 			return nil, errors.New("invalid start date format (use YYYY-MM-DD)")
 		}
 
-		endDate, err = time.Parse(time.RFC3339, req.EndDate)
+		endDate, err = time.Parse("2006-01-02", req.EndDate)
 		if err != nil {
 			return nil, errors.New("invalid end date format (use YYYY-MM-DD)")
 		}

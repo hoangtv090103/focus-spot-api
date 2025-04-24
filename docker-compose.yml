@@ -4,7 +4,7 @@ services:
             context: ./user_service
             dockerfile: Dockerfile
         ports:
-            - "8080:8080"
+            - "9000:8080"
         depends_on:
             - mongodb
         environment:
@@ -14,7 +14,21 @@ services:
             - MONGODB_DATABASE=user_service
             - JWT_SECRET_KEY=your-development-secret-key-must-be-at-least-32-characters-long
         restart: unless-stopped
-        
+    focussession-service:
+        build:
+            context: ./focus_session_service
+            dockerfile: Dockerfile
+        ports:
+            - "9001:8080"
+        depends_on:
+            - mongodb
+        environment:
+            - ENVIRONMENT=development
+            - SERVER_PORT=8080
+            - MONGODB_URI=mongodb://mongodb:27017
+            - MONGODB_DATABASE=user_service
+            - JWT_SECRET_KEY=your-development-secret-key-must-be-at-least-32-characters-long
+        restart: unless-stopped
     mongodb:
         image: mongo:6.0
         ports:
@@ -25,5 +39,3 @@ services:
 
 volumes:
     mongodb_data:
-        
-            
