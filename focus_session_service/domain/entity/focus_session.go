@@ -28,6 +28,8 @@ type FocusSession struct {
 	Mood            *int                `json:"mood,omitempty" bson:"mood,omitempty"`     // Mood
 	CreatedAt       time.Time           `json:"createdAt" bson:"createdAt"`
 	UpdatedAt       time.Time           `json:"updatedAt" bson:"updatedAt"`
+	Active          bool                `json:"active" bson:"active"` // default: true
+	DeletedAt       *time.Time          `json:"deletedAt,omitempty" bson:"deletedAt,omitempty"`
 }
 
 type SessionStatus string

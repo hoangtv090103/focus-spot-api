@@ -369,11 +369,160 @@ func (uc *focusSessionUseCase) EndSession(
 	session.Energy = req.Energy
 	session.Mood = req.Mood
 	session.Distractions = req.Distractions
-	
-	// Caclulate actual duration in minutes
+
+	// Calculate actual duration in minutes
 	duration := int(endTime.Sub(session.StartTime).Minutes())
 	session.ActualDuration = &duration
-	
+
 	response := dto.ToFocusSessionResponse(session)
 	return &response, nil
+}
+
+func (uc *focusSessionUseCase) CancelSession(
+	ctx context.Context,
+	id string,
+	userID string,
+) (*dto.FocusSessionResponse, error) {
+	sessionID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, ErrInvalidSessionID
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, ErrInvalidUserID
+	}
+
+	session, err := uc.sessionRepo.GetByID(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify ownership
+	if session.UserID != userObjID {
+		return nil, ErrNoSessionFoundAccessDenied
+	}
+
+	// Only active session can be canceled
+	if session.Status != entity.StatusCancelled {
+		return nil, errors.New("only active sessions can be cancelled")
+	}
+
+	err = uc.sessionRepo.UpdateStatus(
+		ctx,
+		sessionID,
+		entity.StatusCancelled,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	session.Status = entity.StatusCancelled
+	session.UpdatedAt = time.Now()
+
+	response := dto.ToFocusSessionResponse(session)
+
+	return &response, nil
+}
+
+func (uc *focusSessionUseCase) DeleteSession(ctx context.Context, id string, userID string) error {
+	sessionID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return ErrInvalidSessionID
+	}
+
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return ErrInvalidUserID
+	}
+
+	session, err := uc.sessionRepo.GetByID(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+
+	// Verify ownership
+	if session.UserID != userObjID {
+		return ErrNoSessionFoundAccessDenied
+	}
+
+	return uc.sessionRepo.Delete(ctx, sessionID)
+}
+
+func (uc *focusSessionUseCase) GetProductivityStats(
+	ctx context.Context,
+	userID string,
+	req dto.GetProductivityStatsRequest,
+) (*dto.ProductivityStatsResponse, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, ErrInvalidUserID
+	}
+
+	var startDate, endDate time.Time
+
+	// Default to last 30 days if not specified
+	if req.StartDate == "" || req.EndDate == "" {
+		endDate = time.Now()
+		startDate = endDate.AddDate(0, 0, -30)
+	} else {
+		startDate, err = time.Parse(time.RFC3339, req.StartDate)
+		if err != nil {
+			return nil, errors.New("invalid start date format (use YYYY-MM-DD)")
+		}
+
+		endDate, err = time.Parse(time.RFC3339, req.EndDate)
+		if err != nil {
+			return nil, errors.New("invalid end date format (use YYYY-MM-DD)")
+		}
+
+		// Make endDate inclusive by setting it to the end of the day
+		endDate = endDate.Add(24 * time.Hour).Add(-1 * time.Second)
+	}
+
+	stats, err := uc.sessionRepo.GetProductivityStats(ctx, userObjID, startDate, endDate)
+
+	if err != nil {
+		return nil, err
+	}
+
+	dateRange := dto.DateRange{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	response := dto.ToProductivityStatsResponse(stats, dateRange)
+	return &response, nil
+}
+
+func (uc *focusSessionUseCase) GetProductivityTrends(ctx context.Context, userID string, req dto.GetProductivityTrendsRequest) (*dto.ProductivityTrendsResponse, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user ID")
+	}
+
+	if req.Period == "" {
+		req.Period = entity.Weekly
+	}
+
+	if req.Limit <= 0 {
+		req.Limit = 12
+	}
+
+	trends, err := uc.sessionRepo.GetProductivityTrends(ctx, userObjID, req.Period)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.ProductivityTrendsResponse{
+		Period:       trends.Period,
+		Dates:        trends.Dates,
+		Durations:    trends.Durations,
+		Ratings:      trends.Ratings,
+		Focus:        trends.Focus,
+		Energy:       trends.Energy,
+		Mood:         trends.Mood,
+		Productivity: trends.Productivity,
+	}, nil
 }

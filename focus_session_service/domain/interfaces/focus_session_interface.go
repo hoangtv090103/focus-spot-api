@@ -19,5 +19,5 @@ type IFocusSessionRepository interface {
 	EndSession(ctx context.Context, id primitive.ObjectID, endTime time.Time, notes string, rating, focus, energy, mood, distractions *int) error
 	Delete(ctx context.Context, id primitive.ObjectID) error
 	GetProductivityStats(ctx context.Context, userID primitive.ObjectID, startDate, endDate time.Time) (*entity.ProductivityStats, error)
-	GetProductivityTrends(ctx context.Context, userID primitive.ObjectID, period string) (*entity.ProductivityTrends, error)
+	GetProductivityTrends(ctx context.Context, userID primitive.ObjectID, period entity.Period) (*entity.ProductivityTrends, error)
 }
