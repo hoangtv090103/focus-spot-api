@@ -191,6 +191,24 @@ func (uc *focusSessionUseCase) GetActiveByUserID(ctx context.Context, userID str
 	return &response, nil
 }
 
+func (uc *focusSessionUseCase) GetActiveSession(ctx context.Context, userID string) (*dto.FocusSessionResponse, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user ID")
+	}
+
+	session, err := uc.sessionRepo.GetActiveByUserID(ctx, userObjID)
+	if err != nil {
+		return nil, err
+	}
+
+	if session == nil {
+		return nil, errors.New("no active session found")
+	}
+	response := dto.ToFocusSessionResponse(session)
+	return &response, nil
+}
+
 func (uc *focusSessionUseCase) UpdateSession(
 	ctx context.Context,
 	id string,
